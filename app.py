@@ -41,11 +41,14 @@ def index():
         bot.set_webhook(url=f"https://{os.getenv('RENDER_APP_DOMAIN')}/{TOKEN}")
         return "Webhook set!", 200
     else:
+        # Șterge webhook-ul pentru a putea folosi polling
+        bot.remove_webhook()
         return "Bot is running in local mode! Webhook not set.", 200
 
 if __name__ == "__main__":
     if os.getenv("RENDER_APP_DOMAIN"):
         app.run(host="0.0.0.0", port=int(os.environ.get('PORT', 5000)))
     else:
-        # Folosește polling pentru modul local
+        # Șterge webhook-ul înainte de a începe polling-ul
+        bot.remove_webhook()
         bot.polling(none_stop=True)
