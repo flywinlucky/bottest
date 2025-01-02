@@ -10,11 +10,11 @@ load_dotenv()
 if os.getenv("RENDER_APP_DOMAIN"):
     TOKEN = os.getenv("TELEGRAM_BOT_TOKEN")  # Token-ul din variabilele de mediu
 else:
-    # Citeste token-ul din fisierul secretbottoken.txt
+    # Citește token-ul din fișierul secretbottoken.txt
     with open("secretbottoken.txt", "r") as file:
         TOKEN = file.read().strip()
 
-# Inițializează bot-ul cu threaded=False
+# Inițializează bot-ul
 bot = telebot.TeleBot(TOKEN, threaded=False)
 
 # Inițializează aplicația Flask
@@ -44,6 +44,8 @@ def index():
         return "Bot is running in local mode! Webhook not set.", 200
 
 if __name__ == "__main__":
-    bot.polling(none_stop=True)
-    app.run(host="0.0.0.0", port=int(os.environ.get('PORT', 5000)))
-
+    if os.getenv("RENDER_APP_DOMAIN"):
+        app.run(host="0.0.0.0", port=int(os.environ.get('PORT', 5000)))
+    else:
+        # Folosește polling pentru modul local
+        bot.polling(none_stop=True)
