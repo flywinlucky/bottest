@@ -1,8 +1,8 @@
 import os
 import telebot
+import requests
 from flask import Flask, request
 from dotenv import load_dotenv
-from telebot.types import InlineKeyboardMarkup, InlineKeyboardButton
 
 # Încarcă variabilele din fișierul .env
 load_dotenv()
@@ -32,26 +32,23 @@ def send_welcome(message):
 # Handler pentru orice mesaj text
 @bot.message_handler(func=lambda message: True)
 def handle_affiliate_token(message):
-    response_text = (
-        "Link Name - temkatut.com\n"
-        "Referral Link - https://www.temkatut.com/\n"
-        "Clicks - 7653\n"
-        "Revenue - 550$\n"
-        "Revenue Share (%) - 50%"
-    )
+    affiliate_id = message.text.strip()
+    server_url = os.getenv("SERVER_URL", "http://127.0.0.1:5000")
+    response = requests.get(f"{server_url}/referral/{affiliate_id}")
+    
+    if response.status_code == 200:
+        referral_data = response.json()
+        response_text = (
+            f"Link Name - {referral_data['link_name']}\n"
+            f"Referral Link - {referral_data['referral_link']}\n"
+            f"Clicks - {referral_data['click_count']}\n"
+            f"Revenue - {referral_data['income']}$\n"
+            f"Revenue Share (%) - {referral_data['revenue_share']}%"
+        )
+    else:
+        response_text = "Referral link not found."
+    
     bot.reply_to(message, response_text)
-
-# Handler pentru callback-urile inline keyboard
-@bot.callback_query_handler(func=lambda call: call.data == "show_links")
-def show_links(call):
-    response_text = (
-        "Link Name - temkatut.com\n"
-        "Referral Link - https://www.temkatut.com/\n"
-        "Clicks - 7653\n"
-        "Revenue - 550$\n"
-        "Revenue Share (%) - 50%"
-    )
-    bot.send_message(call.message.chat.id, response_text)
 
 # Endpoint pentru webhook (doar pe server)
 if RUNNING_ON_SERVER:
